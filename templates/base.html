@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{% block title %}ExBattallion Airsofters{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Meta tags for Facebook/Messenger Sharing -->
+  <meta property="og:title" content="ExBattallion Airsofters" />
+  <meta property="og:description" content="Loadouts, Profiles, and Airsoft Team Gallery!" />
+  <meta property="og:image" content="{{ url_for('static', filename='images/share-preview.jpg', _external=True) }}" />
+  <meta property="og:url" content="{{ request.url }}" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.min.css">
+  <!-- PWA manifest and theme -->
+  <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+  <meta name="theme-color" content="#1e90ff">
+
+  <!-- Military Font - "Bebas Neue" from Google Fonts (very military look) -->
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+
+  <style>
+    #bg-fixed {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #181a1b url('{{ url_for('static', filename='images/background.jpg') }}') center center / cover no-repeat;
+      z-index: -2;
+      pointer-events: none;
+    }
+    #bg-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(10,13,15,0.89);
+      z-index: -1;
+      pointer-events: none;
+    }
+    body {
+      color: #b7ffbe !important;
+      background: none !important;
+    }
+    .navbar {
+      background: linear-gradient(90deg, #232b23 0%, #b7ffbe 100%);
+      border-bottom: 2px solid #2c2f33;
+      color: #b7ffbe !important;
+    }
+    .navbar-brand,
+    .navbar-brand:focus,
+    .navbar-brand:hover,
+    .navbar-brand img,
+    .navbar-nav,
+    .navbar-text,
+    .navbar-dark .navbar-nav .nav-link,
+    .navbar-dark .navbar-nav .nav-link.active {
+      color: #b7ffbe !important;
+      background: none !important;
+      text-decoration: none !important;
+      cursor: pointer;
+      transition: none !important;
+    }
+    /* Add space between logo and text */
+    .navbar-brand .brand-logo {
+      margin-right: 13px;
+    }
+    .navbar-brand .brand-military {
+      color: #fff !important;
+      font-family: 'Bebas Neue', Impact, 'Oswald', 'Anton', Arial, sans-serif;
+      font-weight: 900;
+      font-size: 1.35rem;
+      letter-spacing: 2.2px;
+      margin-left: 2px;
+      text-shadow: 0 2px 4px #000a;
+      text-transform: uppercase;
+      line-height: 1.1;
+      display: inline-block;
+      vertical-align: middle;
+    }
+    @media (max-width: 600px) {
+      .navbar-brand .brand-military { font-size: 1.03rem; letter-spacing: 1.1px; }
+      .navbar-brand .brand-logo { margin-right: 7px; }
+    }
+    .navbar-avatar { width: 32px; height: 32px; object-fit: cover; border-radius: 50%; border: 2px solid #b7ffbe; }
+    .card, .mil-form-card {
+      background: rgba(20, 22, 25, 0.97) !important;
+      color: #b7ffbe !important;
+      border: 1.5px solid #2c2f33 !important;
+      box-shadow: 0 2px 16px #000a;
+    }
+    .card-title, .mil-form-card .card-title, .modal-title,
+    h1, h2, h3, h4, h5, h6 {
+      color: #b7ffbe !important;
+      letter-spacing: 1.2px;
+      font-weight: 700;
+      text-shadow: 0 2px 6px #000a;
+    }
+    .card:hover { box-shadow: 0 2px 16px #b7ffbe55; transform: translateY(-2px) scale(1.01); }
+    .form-control, .form-select {
+      background: #23272a !important;
+      color: #b7ffbe !important;
+      border: 1.5px solid #444 !important;
+      font-size: 1.07em;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #b7ffbe !important;
+      background: #232b23 !important;
+      color: #b7ffbe !important;
+    }
+    .btn-primary, .btn-success {
+      background: #232b23 !important;
+      color: #b7ffbe !important;
+      border: none !important;
+      box-shadow: 0 1px 6px #b7ffbe40;
+      transition: background 0.17s, color 0.17s;
+    }
+    .btn-primary:hover, .btn-success:hover, .btn-primary:focus, .btn-success:focus {
+      background: #b7ffbe !important;
+      color: #232b23 !important;
+    }
+    .btn-outline-primary, .btn-outline-success {
+      border-color: #b7ffbe !important;
+      color: #b7ffbe !important;
+      background: none !important;
+    }
+    .btn-outline-primary:hover, .btn-outline-success:hover {
+      background: #b7ffbe !important;
+      color: #232b23 !important;
+    }
+    .avatar { width: 70px; height: 70px; object-fit: cover; border-radius: 50%; border: 2px solid #b7ffbe; }
+    .badge {
+      background: #232b23;
+      color: #b7ffbe !important;
+      font-size: 0.97em;
+      padding: 0.58em 0.97em;
+      border-radius: 0.9em;
+      border: 1px solid #556b2f70;
+    }
+    .footer, .site-footer {
+      background: transparent;
+      color: #b7ffbe !important;
+      font-size: 1em;
+      padding: 1.1em 0 0.7em 0;
+      text-align: center;
+      letter-spacing: 1.1px;
+    }
+    .alert {
+      background: #232b23 !important;
+      color: #b7ffbe !important;
+      border: 1.5px solid #b7ffbe !important;
+    }
+    a {
+      color: #b7ffbe !important;
+      text-decoration: underline;
+      transition: color 0.15s;
+    }
+    a:hover, a:focus {
+      color: #232b23 !important;
+      background: #b7ffbe !important;
+    }
+    .carousel-inner img {
+      object-fit: contain;
+      height: 320px;
+      background: #181a1b;
+      border-radius: 8px;
+    }
+    .progress { margin-top: 1em; display:none; }
+    .modal-content { background: #181a1b; }
+    .close { position: absolute; top: 7px; right: 16px; color: #b7ffbe; font-size: 2rem; cursor: pointer;}
+    ::-webkit-scrollbar {
+      width: 8px;
+      background: #181a1b;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #23272a;
+      border-radius: 8px;
+    }
+    @media (max-width: 600px) {
+      .card-title { font-size: 1.13rem;}
+      .avatar { width: 48px; height:48px;}
+      .footer, .site-footer { font-size: 0.98em; }
+    }
+    /* Sticky bottom nav for mobile */
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100vw;
+      background: #181a1b;
+      border-top: 2px solid #232b23;
+      z-index: 9999;
+      box-shadow: 0 -2px 16px #0007;
+      display: none;
+    }
+    @media (max-width: 767.98px) {
+      .mobile-bottom-nav {
+        display: flex !important;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0.3em 0;
+      }
+      .mobile-bottom-nav .nav-link {
+        color: #b7ffbe !important;
+        text-align: center;
+        font-size: 1.1em;
+        padding: 0.2em 0.8em;
+        border-radius: 0.5em;
+        transition: background .14s;
+      }
+      .mobile-bottom-nav .nav-link.active,
+      .mobile-bottom-nav .nav-link:active {
+        background: #232b23;
+        color: #fff !important;
+      }
+      .container {
+        padding-bottom: 68px !important;
+      }
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body>
+<div id="bg-fixed"></div>
+<div id="bg-overlay"></div>
+<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}">
+      <img src="{{ url_for('static', filename='images/logo.jpg') }}" alt="Logo" width="48" class="brand-logo">
+      <span class="brand-military">ExBattallion Airsofters</span>
+    </a>
+    <div>
+{% if session.get('user_id') %}
+  {% set user = get_user(session['user_id']) %}
+  <a href="{{ url_for('profile') }}" class="btn btn-outline-light btn-sm me-2">
+    {% if user and user.profile_image %}
+      <img src="{{ url_for('uploaded_file', filename=user.profile_image) }}" class="navbar-avatar me-1" alt="Avatar">
+    {% else %}
+      <img src="https://www.gravatar.com/avatar/?d=mp&s=32" class="navbar-avatar me-1" alt="Avatar">
+    {% endif %}
+    {{ user.callsign or "Profile" }}
+  </a>
+  <a href="{{ url_for('logout') }}" class="btn btn-secondary btn-sm btn-logout">Logout</a>
+{% else %}
+  <a href="{{ url_for('login') }}" class="btn btn-primary btn-sm">Sign in with Google</a>
+{% endif %}
+    </div>
+  </div>
+</nav>
+
+<!-- Sticky Bottom Navigation for Mobile (Gallery removed as requested) -->
+<nav class="mobile-bottom-nav d-md-none">
+  <a class="nav-link" href="{{ url_for('home') }}"><i class="bi bi-house"></i><div style="font-size:0.85em;">Home</div></a>
+  <a class="nav-link" href="{{ url_for('add_loadout') }}"><i class="bi bi-plus-circle"></i><div style="font-size:0.85em;">Add Loadout</div></a>
+  <a class="nav-link" href="{{ url_for('profile') }}"><i class="bi bi-person"></i><div style="font-size:0.85em;">Profile</div></a>
+</nav>
+
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for cat, msg in messages %}
+        <div class="alert alert-{{ 'success' if cat=='success' else 'danger' if cat=='danger' else 'info' if cat=='info' else 'warning' }} alert-dismissible fade show" role="alert">
+          {{ msg }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% block content %}
+  <!-- Image Upload Form with Preview and Progress Bar -->
+  <div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+      <div class="card p-4 mb-4">
+        <h2 class="mb-3 text-center">Upload Your Loadout</h2>
+        <form id="uploadForm" method="POST" enctype="multipart/form-data" action="{{ url_for('upload') }}">
+          <div class="mb-3">
+            <label for="imageInput" class="form-label">Loadout Image</label>
+            <input type="file" class="form-control" id="imageInput" name="image" accept="image/*" required onchange="previewImage(event)">
+            <img id="imgPreview" class="mt-3 rounded shadow" style="display:none;max-width:100%;cursor:zoom-in;border:2px solid #b7ffbe;" onclick="openModal(this.src)">
+          </div>
+          <div class="mb-3">
+            <label for="callsign" class="form-label">Callsign</label>
+            <input type="text" class="form-control" id="callsign" name="callsign" required>
+          </div>
+          <div class="mb-3">
+            <label for="role" class="form-label">Role</label>
+            <select class="form-select" id="role" name="role" required>
+              <option value="">Choose…</option>
+              <option>Rifleman</option>
+              <option>Support</option>
+              <option>Sniper</option>
+              <option>Medic</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Upload</button>
+          <div class="progress" id="progWrap">
+            <div class="progress-bar" id="uploadBar" style="width:0%">0%</div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endblock %}
+</div>
+
+<!-- Lightbox Modal -->
+<div class="modal fade" id="imgModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <img id="modalImg" style="width:100%;max-height:70vh;object-fit:contain;">
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% block scripts %}
+<script>
+  // Auto-dismiss Bootstrap alerts after 2.5 seconds
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      document.querySelectorAll('.alert').forEach(function(alert) {
+        if (alert.classList.contains('show')) {
+          var alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
+          alertInstance.close();
+        }
+      });
+    }, 2500);
+  });
+
+  // Register service worker for PWA support
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/static/service-worker.js').catch(function(e){});
+    });
+  }
+
+  // Image Preview Before Upload
+  function previewImage(event) {
+    const img = document.getElementById('imgPreview');
+    img.src = URL.createObjectURL(event.target.files[0]);
+    img.style.display = 'block';
+    img.onload = function() {
+      URL.revokeObjectURL(img.src);
+    }
+  }
+
+  // Lightbox modal for image preview
+  function openModal(src) {
+    document.getElementById('modalImg').src = src;
+    var modal = new bootstrap.Modal(document.getElementById('imgModal'), {});
+    modal.show();
+  }
+  function closeModal() {
+    var modalEl = document.getElementById('imgModal');
+    var modal = bootstrap.Modal.getInstance(modalEl);
+    modal.hide();
+  }
+
+  // Progress bar during upload
+  const uploadForm = document.getElementById('uploadForm');
+  if (uploadForm) {
+    uploadForm.onsubmit = function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      const bar = document.getElementById('uploadBar');
+      const progWrap = document.getElementById('progWrap');
+      progWrap.style.display = 'block';
+      bar.style.width = "0%";
+      bar.textContent = "0%";
+      const xhr = new XMLHttpRequest();
+      xhr.upload.onprogress = function(e) {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          bar.style.width = percent + '%';
+          bar.textContent = percent + '%';
+        }
+      };
+      xhr.onload = function() {
+        bar.textContent = 'Done!';
+        setTimeout(() => { progWrap.style.display = 'none'; }, 1200);
+        if(xhr.status === 200) {
+          window.location.href = "/"; // Or another success page
+        }
+      };
+      xhr.onerror = function() {
+        bar.textContent = 'Error!';
+        setTimeout(() => { progWrap.style.display = 'none'; }, 1500);
+      };
+      xhr.open('POST', form.action);
+      xhr.send(data);
+    };
+  }
+</script>
+{% endblock %}
+</body>
+</html>

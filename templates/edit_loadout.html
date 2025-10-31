@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Edit Loadout | ExBattallion Airsofters{% endblock %}
+{% block head %}
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@700&display=swap" rel="stylesheet">
+<style>
+  body {
+    background: #222 url("{{ url_for('static', filename='images/background.jpg') }}") repeat !important;
+    background-size: cover !important;
+    padding-bottom: 42px;
+  }
+  @media (max-width: 600px) {
+    body {
+      background-attachment: fixed !important;
+      background-position: center center !important;
+      background-repeat: no-repeat !important;
+      background-size: cover !important;
+    }
+  }
+  .mil-form-card {
+    background: rgba(30,40,30,0.86);
+    border: 1px solid #7b8f62;
+    border-radius: 8px;
+    box-shadow: 0 1px 7px #141e14;
+    font-family: 'Oswald', Impact, sans-serif;
+    color: #d7dfc7;
+    max-width: 430px;
+    margin: 36px auto 0 auto;
+    padding: 2.2rem 2.3rem 1.5rem 2.3rem;
+  }
+  .mil-form-card label,
+  .mil-form-card .form-label,
+  .mil-form-card select,
+  .mil-form-card input,
+  .mil-form-card .form-text {
+    font-family: 'Oswald', Impact, sans-serif;
+    font-size: 1.08em;
+    letter-spacing: .5px;
+  }
+  .mil-form-card input, .mil-form-card select {
+    background: #232b23 !important;
+    color: #d7dfc7 !important;
+    border: 1.5px solid #556b2f !important;
+    border-radius: 7px !important;
+    box-shadow: none !important;
+    font-family: 'Oswald', Impact, sans-serif;
+  }
+  .mil-form-card input[type="file"] {
+    background: none !important;
+    color: #b7ffbe !important;
+    border: none !important;
+    padding-left: 0;
+  }
+  .mil-form-card .btn-outline-primary {
+    border-color: #556b2f !important;
+    color: #b7ffbe !important;
+    background: none !important;
+    font-family: 'Oswald', Impact, sans-serif;
+    letter-spacing: 1px;
+    transition: background .19s, color .19s;
+  }
+  .mil-form-card .btn-outline-primary:hover {
+    background: #556b2f !important;
+    color: #fff !important;
+  }
+  .mil-form-card .btn-primary {
+    background: #556b2f !important;
+    border: none !important;
+    color: #fff !important;
+    font-family: 'Oswald', Impact, sans-serif;
+    letter-spacing: 1px;
+    font-size: 1.07em;
+    border-radius: 5px;
+    padding: 0.47em 1.5em;
+    margin-top: 8px;
+    box-shadow: 0 2px 8px #0002;
+    transition: background .19s;
+  }
+  .mil-form-card .btn-primary:hover {
+    background: #324e2a !important;
+    color: #b7ffbe !important;
+  }
+  .mil-form-card .form-text {
+    color: #b7ffbe;
+    font-size: .96em;
+    margin-left: 2px;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="mil-form-card">
+  <h3 class="mb-4" style="font-family:'Oswald',Impact,sans-serif;letter-spacing:1.1px;color:#b7ffbe;">Edit Loadout</h3>
+  <form method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label class="form-label">Airsoft Platform</label>
+      <select class="form-select" name="type" required>
+        <option value="">-- Select Weapon Type --</option>
+        <option value="M4/AR-15" {% if user.aeg == "M4" %}selected{% endif %}>M4/AR-15</option>
+        <option value="MK" {% if user.aeg == "MK" %}selected{% endif %}>MK</option>
+        <option value="DMR" {% if user.aeg == "DMR" %}selected{% endif %}>DMR</option>
+        <option value="AK" {% if user.aeg == "AK" %}selected{% endif %}>AK</option>
+        <option value="SNIPER" {% if user.aeg == "G36" %}selected{% endif %}>SNIPER</option>
+        <option value="MP5" {% if user.aeg == "MP5" %}selected{% endif %}>G36</option>
+        <option value="HPA" {% if user.aeg == "Other" %}selected{% endif %}>HPA</option>
+        <option value="HK" {% if user.aeg == "Other" %}selected{% endif %}>HK</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Loadout Picture (Whole Body / Uniform)</label>
+      <input class="form-control visually-hidden" type="file" id="loadout_picture" name="loadout_picture" accept="image/*" onchange="previewLoadoutPic(event)">
+      <label for="loadout_picture" class="btn btn-outline-primary w-100">
+        <i class="bi bi-upload"></i> Select Loadout Picture
+      </label>
+      <div id="loadout_pic_preview" class="d-flex flex-wrap gap-2 mt-2">
+        {% if loadout.images and loadout.images[0] %}
+          <img src="{{ url_for('uploaded_file', filename=loadout.images[0].image_path) }}" class="rounded border" style="width:80px;height:80px;object-fit:cover;">
+        {% endif %}
+      </div>
+      <div class="form-text">Recommended: Whole body shot (JPG, PNG)</div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">AEG (Rifle) Picture</label>
+      <input class="form-control visually-hidden" type="file" id="aeg_image" name="aeg_image" accept="image/*" onchange="previewAegPic(event)">
+      <label for="aeg_image" class="btn btn-outline-primary w-100">
+        <i class="bi bi-upload"></i> Select Airsoft Picture
+      </label>
+      <div id="aeg_pic_preview" class="d-flex flex-wrap gap-2 mt-2">
+        {% if loadout.aeg_image %}
+          <img src="{{ url_for('uploaded_file', filename=loadout.aeg_image) }}" class="rounded border" style="width:80px;height:80px;object-fit:cover;">
+        {% endif %}
+      </div>
+      <div class="form-text">Upload a clear photo of your Airsoft.</div>
+    </div>
+    <button class="btn btn-primary w-100">Update</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function previewLoadoutPic(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('loadout_pic_preview');
+  preview.innerHTML = '';
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = "rounded border";
+      img.style.width = "80px";
+      img.style.height = "80px";
+      img.style.objectFit = "cover";
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+function previewAegPic(event) {
+  const file = event.target.files[0];
+  const preview = document.getElementById('aeg_pic_preview');
+  preview.innerHTML = '';
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.className = "rounded border";
+      img.style.width = "80px";
+      img.style.height = "80px";
+      img.style.objectFit = "cover";
+      preview.appendChild(img);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+</script>
+<!-- Auto-dismiss Bootstrap alerts after 2.5 seconds (if flashed messages are used on this page) -->
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    document.querySelectorAll('.alert').forEach(function(alert) {
+      if (alert.classList.contains('show')) {
+        var alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
+        alertInstance.close();
+      }
+    });
+  }, 2500);
+});
+</script>
+{% endblock %}

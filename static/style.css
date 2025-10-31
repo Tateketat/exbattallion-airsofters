@@ -1,0 +1,9 @@
+body { background: #181a1b; color: #eee; }
+.card { background: #23272a; color: #eee; }
+.navbar { border-bottom: 2px solid #2c2f33; }
+a { color: #1e90ff; }
+a:hover { color: #63a4ff; }
+.form-control, .form-select { background: #23272a; color: #eee; border: 1px solid #444; }
+.btn-primary, .btn-success { background: #1e90ff; border: none; }
+.btn-primary:hover, .btn-success:hover { background: #63a4ff; }
+.carousel-inner img { object-fit: contain; height: 320px; }

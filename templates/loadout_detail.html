@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Loadout Details | ExBattallion Airsofters{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card p-4">
+      <div class="mb-3">
+        <h3>{{ loadout.title|e }}</h3>
+        <span class="badge bg-info text-dark">{{ user.team or 'No Team' }}</span>
+        <span class="badge bg-secondary">{{ loadout.type or 'No Type' }}</span>
+        <span class="badge bg-dark">{{ user.callsign or 'No Callsign' }}</span>
+      </div>
+      <div class="mb-3">
+        <strong>Notes:</strong>
+        <p>{{ loadout.notes|e }}</p>
+      </div>
+      <div class="mb-3">
+        <strong>Images:</strong><br>
+        {% if loadout.images %}
+          <div class="row g-2">
+            {% for img in loadout.images %}
+              <div class="col-6 col-md-4">
+                <img src="{{ url_for('uploaded_file', filename=img.image_path) }}" class="img-fluid rounded mb-2" alt="Loadout Image">
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <span class="text-muted">No images uploaded.</span>
+        {% endif %}
+      </div>
+      <div class="mb-2">
+        <strong>Added:</strong> {{ loadout.created_at.strftime('%B %d, %Y') }}
+      </div>
+      <a href="{{ url_for('home') }}" class="btn btn-outline-secondary mt-3">Back to Gallery</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    document.querySelectorAll('.alert').forEach(function(alert) {
+      if (alert.classList.contains('show')) {
+        var alertInstance = bootstrap.Alert.getOrCreateInstance(alert);
+        alertInstance.close();
+      }
+    });
+  }, 2500);
+});
+</script>
+{% endblock %}
