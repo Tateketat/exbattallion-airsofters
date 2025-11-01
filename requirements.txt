@@ -4,3 +4,4 @@ Authlib
 Werkzeug
 requests
 gunicorn
+psycopg2-binary
