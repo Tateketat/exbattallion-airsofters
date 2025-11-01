@@ -324,14 +324,16 @@ def edit_loadout(loadout_id):
             aeg_image_name = save_image(aeg_image_file)
             loadout.aeg_image = aeg_image_name
 
-        # Handle main loadout image (optional update)
+        # Handle main loadout image (replace old if any)
         img = request.files.get('loadout_picture')
         if img and img.filename and allowed_image(img.filename):
             img_name = save_image(img)
-            # Delete old images if you want (optional)
-            # For now, just add a new one
-            loadout_image = LoadoutImage(loadout_id=loadout.id, image_path=img_name)
-            db.session.add(loadout_image)
+            main_img = LoadoutImage.query.filter_by(loadout_id=loadout.id).order_by(LoadoutImage.id.asc()).first()
+            if main_img:
+                main_img.image_path = img_name
+            else:
+                loadout_image = LoadoutImage(loadout_id=loadout.id, image_path=img_name)
+                db.session.add(loadout_image)
 
         db.session.commit()
         flash('Loadout updated!', 'success')
