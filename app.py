@@ -11,18 +11,8 @@ from authlib.integrations.flask_client import OAuth
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
-from sqlalchemy import event
-from sqlalchemy.engine import Engine
 
 db = SQLAlchemy()
-
-
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-
 
 # --- Config ---
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
@@ -30,10 +20,10 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-super-long-secret-key'  # Change this to your own strong secret!
+app.config['SECRET_KEY'] = 'your-super-long-secret-key'  # Change this!
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
-    'sqlite:///' + os.path.join(BASE_DIR, 'app.db')
+    'postgresql://exbattallion_db_user:s914i2N36DVKp3Yl05TPUsf18MOmBJC5@dpg-d42vnkh5pdvs73dhtgs0-a.singapore-postgres.render.com/exbattallion_db'
 )
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -50,7 +40,6 @@ google = oauth.register(
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
 )
-
 
 # --- Models ---
 class User(db.Model):
@@ -70,14 +59,12 @@ class User(db.Model):
         passive_deletes=True
     )
 
-
 class Team(db.Model):
     __tablename__ = 'teams'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True)
     city = db.Column(db.String(64))
     description = db.Column(db.Text)
-
 
 class Loadout(db.Model):
     __tablename__ = 'loadouts'
@@ -91,14 +78,12 @@ class Loadout(db.Model):
     user = relationship('User', back_populates='loadouts')
     images = relationship('LoadoutImage', back_populates='loadout', cascade='all, delete-orphan')
 
-
 class LoadoutImage(db.Model):
     __tablename__ = 'loadout_images'
     id = db.Column(db.Integer, primary_key=True)
     loadout_id = db.Column(db.Integer, db.ForeignKey('loadouts.id', ondelete="CASCADE"), nullable=False)
     image_path = db.Column(db.String(255), nullable=False)
     loadout = relationship('Loadout', back_populates='images')
-
 
 # --- Auth Decorator ---
 def login_required(f):
@@ -109,14 +94,11 @@ def login_required(f):
             flash('Please log in to access this page.', 'warning')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-
     return decorated
-
 
 # --- Helper Functions ---
 def allowed_image(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_IMAGE_EXTENSIONS
-
 
 def save_image(file_storage):
     if file_storage and allowed_image(file_storage.filename):
@@ -128,21 +110,17 @@ def save_image(file_storage):
         return unique_name
     return None
 
-
 def get_current_user():
     if 'user_id' in session:
         return User.query.get(session['user_id'])
     return None
-
 
 def get_user_by_id(user_id):
     if user_id:
         return User.query.get(user_id)
     return None
 
-
 app.jinja_env.globals.update(get_user=get_user_by_id)
-
 
 def get_users_with_latest_loadout_image():
     users = User.query.all()
@@ -167,7 +145,6 @@ def get_users_with_latest_loadout_image():
                     "loadout": latest_loadout
                 })
     return result
-
 
 # --- Routes ---
 @app.route('/')
@@ -211,12 +188,10 @@ def home():
         user_loadout=user_loadout
     )
 
-
 @app.route('/login')
 def login():
     redirect_uri = url_for('authorize', _external=True)
     return google.authorize_redirect(redirect_uri)
-
 
 @app.route('/authorize')
 def authorize():
@@ -243,13 +218,11 @@ def authorize():
     flash('Logged in as %s' % email, 'success')
     return redirect(url_for('profile'))  # <-- Redirects to Create Profile page
 
-
 @app.route('/logout')
 def logout():
     session.clear()
     flash('Logged out.', 'info')
     return redirect(url_for('home'))
-
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
@@ -275,7 +248,6 @@ def profile():
         flash('Profile updated!', 'success')
         return redirect(url_for('home'))
     return render_template('profile.html', user=user, teams=teams)
-
 
 @app.route('/add-loadout', methods=['GET', 'POST'])
 @login_required
@@ -332,7 +304,6 @@ def add_loadout():
         return redirect(url_for('home'))
     return render_template('add_loadout.html')
 
-
 @app.route('/edit-loadout/<int:loadout_id>', methods=['GET', 'POST'])
 @login_required
 def edit_loadout(loadout_id):
@@ -367,23 +338,19 @@ def edit_loadout(loadout_id):
         return redirect(url_for('home'))
     return render_template('edit_loadout.html', loadout=loadout)
 
-
 @app.route('/loadout/<int:loadout_id>')
 def loadout_detail(loadout_id):
     loadout = Loadout.query.get_or_404(loadout_id)
     user = User.query.get(loadout.user_id)
     return render_template('loadout_detail.html', loadout=loadout, user=user)
 
-
 @app.route('/static/uploads/<filename>')
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-
 @app.context_processor
 def inject_now():
     return {'now': datetime.now(timezone.utc)}
-
 
 if __name__ == '__main__':
     with app.app_context():
